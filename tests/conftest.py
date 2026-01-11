@@ -4,11 +4,17 @@ from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.config import settings
 
 
 @pytest.fixture
 def client():
     return TestClient(app)
+
+
+@pytest.fixture
+def auth_headers():
+    return {"X-API-KEY": settings.api_key}
 
 
 def create_mock_doc(doc_id, data):

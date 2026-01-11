@@ -1,11 +1,20 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app import cache
+from app.auth import verify_api_key
 from app.database import get_db
 from app.models import HealthDataCreate, HealthDataResponse, HealthDataListResponse, SummaryResponse
 
-router = APIRouter(prefix="/users", tags=["health"])
+limiter = Limiter(key_func=get_remote_address)
+
+router = APIRouter(
+    prefix="/users",
+    tags=["health"],
+    dependencies=[Depends(verify_api_key)]
+)
 
 PAGE_SIZE = 50
 
@@ -25,7 +34,8 @@ def parse_date(date_str: str) -> datetime:
     response_model=HealthDataResponse,
     status_code=status.HTTP_201_CREATED
 )
-def create_health_data(user_id: str, data: HealthDataCreate):
+@limiter.limit("60/minute")
+def create_health_data(request: Request, user_id: str, data: HealthDataCreate):
     db = get_db()
     doc_ref = db.collection("users").document(user_id).collection("health_records").document()
     
@@ -51,7 +61,9 @@ def create_health_data(user_id: str, data: HealthDataCreate):
     "/{user_id}/health-data",
     response_model=HealthDataListResponse
 )
+@limiter.limit("60/minute")
 def get_health_data(
+    request: Request,
     user_id: str,
     start: str = Query(..., description="Start date in DD-MM-YYYY format"),
     end: str = Query(..., description="End date in DD-MM-YYYY format"),
@@ -96,7 +108,9 @@ def get_health_data(
     "/{user_id}/summary",
     response_model=SummaryResponse
 )
+@limiter.limit("60/minute")
 def get_summary(
+    request: Request,
     user_id: str,
     start: str = Query(..., description="Start date in DD-MM-YYYY format"),
     end: str = Query(..., description="End date in DD-MM-YYYY format")
