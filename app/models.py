@@ -27,3 +27,12 @@ class HealthDataListResponse(BaseModel):
     page: int
     total_count: int
     has_more: bool
+
+
+class SummaryResponse(BaseModel):
+    userId: str
+    startDate: str
+    endDate: str
+    totalSteps: int
+    averageCalories: float
+    averageSleepHours: float
