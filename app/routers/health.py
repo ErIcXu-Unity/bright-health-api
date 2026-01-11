@@ -1,9 +1,22 @@
-from fastapi import APIRouter, status
+from datetime import datetime
+from fastapi import APIRouter, HTTPException, Query, status
 
 from app.database import get_db
-from app.models import HealthDataCreate, HealthDataResponse
+from app.models import HealthDataCreate, HealthDataResponse, HealthDataListResponse
 
 router = APIRouter(prefix="/users", tags=["health"])
+
+PAGE_SIZE = 50
+
+
+def parse_date(date_str: str) -> datetime:
+    try:
+        return datetime.strptime(date_str, "%d-%m-%Y")
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid date format: {date_str}. Expected DD-MM-YYYY"
+        )
 
 
 @router.post(
@@ -30,4 +43,49 @@ def create_health_data(user_id: str, data: HealthDataCreate):
         steps=data.steps,
         calories=data.calories,
         sleepHours=data.sleepHours
+    )
+
+
+@router.get(
+    "/{user_id}/health-data",
+    response_model=HealthDataListResponse
+)
+def get_health_data(
+    user_id: str,
+    start: str = Query(..., description="Start date in DD-MM-YYYY format"),
+    end: str = Query(..., description="End date in DD-MM-YYYY format"),
+    page: int = Query(1, ge=1, description="Page number")
+):
+    start_date = parse_date(start)
+    end_date = parse_date(end)
+    end_date = end_date.replace(hour=23, minute=59, second=59)
+    
+    db = get_db()
+    collection_ref = db.collection("users").document(user_id).collection("health_records")
+    
+    query = collection_ref.where("timestamp", ">=", start_date).where("timestamp", "<=", end_date)
+    all_docs = list(query.stream())
+    
+    total_count = len(all_docs)
+    start_index = (page - 1) * PAGE_SIZE
+    end_index = start_index + PAGE_SIZE
+    page_docs = all_docs[start_index:end_index]
+    
+    data = []
+    for doc in page_docs:
+        doc_data = doc.to_dict()
+        data.append(HealthDataResponse(
+            id=doc.id,
+            userId=user_id,
+            timestamp=doc_data["timestamp"],
+            steps=doc_data["steps"],
+            calories=doc_data["calories"],
+            sleepHours=doc_data["sleepHours"]
+        ))
+    
+    return HealthDataListResponse(
+        data=data,
+        page=page,
+        total_count=total_count,
+        has_more=end_index < total_count
     )
