@@ -20,3 +20,10 @@ class HealthDataResponse(BaseModel):
     steps: int
     calories: int
     sleepHours: float
+
+
+class HealthDataListResponse(BaseModel):
+    data: list[HealthDataResponse]
+    page: int
+    total_count: int
+    has_more: bool
