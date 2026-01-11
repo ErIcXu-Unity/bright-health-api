@@ -1,8 +1,9 @@
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Query, status
 
+from app import cache
 from app.database import get_db
-from app.models import HealthDataCreate, HealthDataResponse, HealthDataListResponse
+from app.models import HealthDataCreate, HealthDataResponse, HealthDataListResponse, SummaryResponse
 
 router = APIRouter(prefix="/users", tags=["health"])
 
@@ -89,3 +90,55 @@ def get_health_data(
         total_count=total_count,
         has_more=end_index < total_count
     )
+
+
+@router.get(
+    "/{user_id}/summary",
+    response_model=SummaryResponse
+)
+def get_summary(
+    user_id: str,
+    start: str = Query(..., description="Start date in DD-MM-YYYY format"),
+    end: str = Query(..., description="End date in DD-MM-YYYY format")
+):
+    cache_key = f"summary:{user_id}:{start}:{end}"
+    cached_result = cache.get(cache_key)
+    if cached_result:
+        return cached_result
+    
+    start_date = parse_date(start)
+    end_date = parse_date(end)
+    end_date = end_date.replace(hour=23, minute=59, second=59)
+    
+    db = get_db()
+    collection_ref = db.collection("users").document(user_id).collection("health_records")
+    
+    query = collection_ref.where("timestamp", ">=", start_date).where("timestamp", "<=", end_date)
+    all_docs = list(query.stream())
+    
+    total_steps = 0
+    total_calories = 0
+    total_sleep = 0.0
+    count = len(all_docs)
+    
+    for doc in all_docs:
+        doc_data = doc.to_dict()
+        total_steps += doc_data["steps"]
+        total_calories += doc_data["calories"]
+        total_sleep += doc_data["sleepHours"]
+    
+    avg_calories = total_calories / count if count > 0 else 0.0
+    avg_sleep = total_sleep / count if count > 0 else 0.0
+    
+    result = SummaryResponse(
+        userId=user_id,
+        startDate=start,
+        endDate=end,
+        totalSteps=total_steps,
+        averageCalories=round(avg_calories, 2),
+        averageSleepHours=round(avg_sleep, 2)
+    )
+    
+    cache.set(cache_key, result, ttl_seconds=300)
+    
+    return result
