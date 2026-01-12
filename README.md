@@ -21,6 +21,30 @@ A RESTful health data ingestion and retrieval service built with FastAPI, deploy
 - **Deployment**: Google Cloud Run
 - **Containerization**: Docker
 
+## Project Structure
+
+```
+bright-health-api/
+├── app/
+│   ├── __init__.py
+│   ├── main.py           # FastAPI application
+│   ├── config.py         # Configuration settings
+│   ├── auth.py           # API key authentication
+│   ├── database.py       # Firestore connection
+│   ├── models.py         # Pydantic models
+│   ├── cache.py          # Caching layer (memory/Redis)
+│   └── routers/
+│       ├── __init__.py
+│       └── health.py     # Health data endpoints
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py       # Pytest fixtures
+│   └── test_health.py    # Unit tests
+├── Dockerfile
+├── requirements.txt
+└── README.md
+```
+
 ## Live Demo
 
 **Production URL**: https://bright-health-api-333286589626.australia-southeast1.run.app
@@ -184,26 +208,31 @@ pytest --cov=app --cov-report=html tests/
 Name                      Stmts   Miss  Cover
 ---------------------------------------------
 app/__init__.py               0      0   100%
-app/auth.py                   9      0   100%
-app/cache.py                 15      0   100%
-app/config.py                 8      0   100%
+app/auth.py                   8      0   100%
+app/cache.py                 49     14    71%
+app/config.py                10      0   100%
 app/database.py              14     14     0%
-app/main.py                  15      0   100%
+app/main.py                  14      0   100%
 app/models.py                28      0   100%
 app/routers/__init__.py       0      0   100%
-app/routers/health.py        76      0   100%
+app/routers/health.py        71      0   100%
 ---------------------------------------------
-TOTAL                       165     14    95%
+TOTAL                       194     22    89%
 ```
 
-**Note**: `database.py` shows 0% coverage because Firestore is **mocked** in tests. This is intentional:
+**Note on uncovered code**:
 
-- Unit tests should be fast and not make network calls
-- Tests run without Google Cloud credentials (CI/CD friendly)
-- No Firestore read/write costs during testing
-- Tests are deterministic and repeatable
+- `database.py` (0%): Firestore is **mocked** in unit tests - no real database calls
+- `cache.py` (71%): Redis connection code is not tested (requires running Redis server)
 
-The actual Firestore integration is verified through manual testing and the live deployment.
+This is intentional for unit tests:
+
+- Fast execution without network calls
+- No Google Cloud credentials required (CI/CD friendly)
+- No Firestore/Redis costs during testing
+- Deterministic and repeatable results
+
+The actual integrations are verified through manual testing and the live deployment.
 
 ## Deployment to Google Cloud Run
 
@@ -333,7 +362,7 @@ Response:
 - [x] **Caching**: In-memory cache with 5-minute TTL, Redis-ready
 - [x] **Input Validation**: Pydantic models with constraints (steps >= 0, etc.)
 - [x] **Error Handling**: Descriptive HTTP error codes (400, 401, 422, 429)
-- [x] **Unit Tests**: 15 tests with 95% coverage
+- [x] **Unit Tests**: 15 tests with 89% coverage
 - [x] **Rate Limiting**: 60 requests/minute per IP using slowapi
 
 ## Redis/Memorystore Integration
@@ -350,31 +379,3 @@ The caching layer supports Google Cloud Memorystore (Redis). To enable:
    ```
 
 The application automatically falls back to in-memory caching when Redis is unavailable.
-
-## Project Structure
-
-```
-bright-health-api/
-├── app/
-│   ├── __init__.py
-│   ├── main.py           # FastAPI application
-│   ├── config.py         # Configuration settings
-│   ├── auth.py           # API key authentication
-│   ├── database.py       # Firestore connection
-│   ├── models.py         # Pydantic models
-│   ├── cache.py          # Caching layer (memory/Redis)
-│   └── routers/
-│       ├── __init__.py
-│       └── health.py     # Health data endpoints
-├── tests/
-│   ├── __init__.py
-│   ├── conftest.py       # Pytest fixtures
-│   └── test_health.py    # Unit tests
-├── Dockerfile
-├── requirements.txt
-└── README.md
-```
-
-## License
-
-This project was created as a technical assessment.
