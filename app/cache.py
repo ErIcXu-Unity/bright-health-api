@@ -44,6 +44,9 @@ def get(key: str) -> Optional[Any]:
 
 
 def set(key: str, value: Any, ttl_seconds: int = 300) -> None:
+    if hasattr(value, 'model_dump'):
+        value = value.model_dump()
+    
     redis_client = _get_redis()
     if redis_client:
         try:
