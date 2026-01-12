@@ -130,7 +130,7 @@ def test_cache_expiration():
     assert cache.get("test_key") is None
 
 
-def test_no_api_key_returns_422(client, mock_db):
+def test_no_api_key_returns_401(client, mock_db):
     payload = {
         "timestamp": "2026-01-08T08:30:00Z",
         "steps": 1200,
@@ -138,7 +138,7 @@ def test_no_api_key_returns_422(client, mock_db):
         "sleepHours": 7.5
     }
     response = client.post("/users/user123/health-data", json=payload)
-    assert response.status_code == 422
+    assert response.status_code == 401
 
 
 def test_invalid_api_key_returns_401(client, mock_db):
