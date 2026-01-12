@@ -357,14 +357,6 @@ Response:
 | `REDIS_HOST`                     | Redis host for caching (optional)         | No         |
 | `REDIS_PORT`                     | Redis port (default: 6379)                | No         |
 
-## Bonus Features Implemented
-
-- [x] **Caching**: In-memory cache with 5-minute TTL, Redis-ready
-- [x] **Input Validation**: Pydantic models with constraints (steps >= 0, etc.)
-- [x] **Error Handling**: Descriptive HTTP error codes (400, 401, 422, 429)
-- [x] **Unit Tests**: 15 tests with 89% coverage
-- [x] **Rate Limiting**: 60 requests/minute per IP using slowapi
-
 ## Redis/Memorystore Integration
 
 The caching layer supports Google Cloud Memorystore (Redis). To enable:
