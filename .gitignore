@@ -15,3 +15,8 @@ venv/
 dist/
 build/
 *.egg-info/
+
+# --- Testing ---
+.pytest_cache/
+.coverage
+htmlcov/
