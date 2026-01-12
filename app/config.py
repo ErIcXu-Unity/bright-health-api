@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     api_key: str = "default-dev-key"
     google_cloud_project: str = "bright-assessment"
     google_application_credentials: Optional[str] = "service-account.json"
+    redis_host: Optional[str] = None
+    redis_port: int = 6379
 
 
 settings = Settings()
