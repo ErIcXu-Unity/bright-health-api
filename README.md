@@ -171,7 +171,7 @@ curl "https://bright-health-api-333286589626.australia-southeast1.run.app/users/
 5. **Create `.env` file**
 
    ```
-   API_KEY=default-dev-key
+   API_KEY=YOUR-API-KEY
    GOOGLE_CLOUD_PROJECT=bright-assessment
    GOOGLE_APPLICATION_CREDENTIALS=service-account.json
    REDIS_HOST=localhost
