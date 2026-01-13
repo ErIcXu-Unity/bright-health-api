@@ -171,14 +171,8 @@ curl "https://bright-health-api-333286589626.australia-southeast1.run.app/users/
 5. **Create `.env` file**
 
    ```
-   API_KEY=default-dev-key
-   GOOGLE_CLOUD_PROJECT=bright-assessment
-   GOOGLE_APPLICATION_CREDENTIALS=service-account.json
-   REDIS_HOST=localhost
-   REDIS_PORT=6379
+   HIDE
    ```
-
-   Note: `REDIS_HOST` is optional. Remove it to use in-memory cache.
 
 6. **Run the application**
 
