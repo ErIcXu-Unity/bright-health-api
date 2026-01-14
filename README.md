@@ -85,8 +85,7 @@ curl "https://bright-health-api-333286589626.australia-southeast1.run.app/users/
 2. **Configure `.env`**
 
    ```
-   REDIS_HOST=localhost
-   REDIS_PORT=6379
+   HIDE
    ```
 
 3. **Run the app**
