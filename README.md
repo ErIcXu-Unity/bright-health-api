@@ -47,8 +47,6 @@ bright-health-api/
 
 ## Live Demo
 
-**Production URL**: https://bright-health-api-333286589626.australia-southeast1.run.app
-
 **API Key**: Provided separately for security
 
 **Swagger UI**: https://bright-health-api-333286589626.australia-southeast1.run.app/docs
